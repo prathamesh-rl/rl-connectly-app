@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table"
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, ChevronDown, ChevronRight } from 'lucide-react';
-import { CollapsibleContent } from '@/components/ui/collapsible';
 import campaignData from '@/data/campaign-perf.json';
+import { Badge } from '@/components/ui/badge';
 
 type Campaign = {
   campaignName: string;
@@ -79,8 +79,8 @@ const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direc
   return { items: sortedItems, requestSort, sortConfig };
 };
 
-const SortableHeader = ({ children, sortKey, requestSort }: { children: React.ReactNode, sortKey: SortKey, requestSort: (key: SortKey) => void }) => (
-  <TableHead>
+const SortableHeader = ({ children, sortKey, requestSort, className }: { children: React.ReactNode, sortKey: SortKey, requestSort: (key: SortKey) => void, className?: string }) => (
+  <TableHead className={className}>
     <Button variant="ghost" onClick={() => requestSort(sortKey)}>
       {children}
       <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -93,32 +93,45 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
     return (
         <React.Fragment>
             <TableRow onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
-            <TableCell>
-                <Button variant="ghost" size="sm" className="mr-2">
-                    {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    <span className="sr-only">Toggle details</span>
-                </Button>
-                {item.campaignName}
-            </TableCell>
-            <TableCell>{item.sent.toLocaleString()}</TableCell>
-            <TableCell>{item.delivered.toLocaleString()}</TableCell>
-            <TableCell>{(item.delivered / item.sent * 100).toFixed(1)}%</TableCell>
-            <TableCell>{(item.clicks / item.delivered * 100).toFixed(1)}%</TableCell>
-            <TableCell>${item.cost.toFixed(2)}</TableCell>
-            <TableCell>{item.activity.inactive.toFixed(1)}%</TableCell>
-            <TableCell>{item.activity.active.toFixed(1)}%</TableCell>
-            <TableCell>{item.activity.highlyActive.toFixed(1)}%</TableCell>
-            <TableCell>
-                Low: {item.frequency.low.toLocaleString()}<br />
-                Med: {item.frequency.medium.toLocaleString()}<br />
-                High: {item.frequency.high.toLocaleString()}
-            </TableCell>
+              <TableCell>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2">
+                      {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      <span className="sr-only">Toggle details</span>
+                  </Button>
+                  {item.campaignName}
+              </TableCell>
+              <TableCell className="text-right">{(item.delivered / item.sent * 100).toFixed(1)}%</TableCell>
+              <TableCell className="text-right">{(item.clicks / item.delivered * 100).toFixed(1)}%</TableCell>
+              <TableCell className="text-right">${item.cost.toFixed(2)}</TableCell>
             </TableRow>
             {isOpen && (
                 <TableRow>
-                    <TableCell colSpan={10} className="p-4 bg-muted/50">
-                        <p className="font-semibold">Details:</p>
-                        <p>{item.details}</p>
+                    <TableCell colSpan={4} className="p-4 bg-muted/50">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <h4 className="font-semibold mb-2">Delivery</h4>
+                            <p>Sent: {item.sent.toLocaleString()}</p>
+                            <p>Delivered: {item.delivered.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2">User Activity</h4>
+                            <div className="flex flex-col gap-1">
+                              <Badge variant="secondary">Inactive: {item.activity.inactive.toFixed(1)}%</Badge>
+                              <Badge>Active: {item.activity.active.toFixed(1)}%</Badge>
+                              <Badge variant="outline">Highly Active: {item.activity.highlyActive.toFixed(1)}%</Badge>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2">Frequency</h4>
+                            <p>Low: {item.frequency.low.toLocaleString()}</p>
+                            <p>Medium: {item.frequency.medium.toLocaleString()}</p>
+                            <p>High: {item.frequency.high.toLocaleString()}</p>
+                          </div>
+                          <div className="md:col-span-3">
+                            <h4 className="font-semibold mb-1">Details</h4>
+                            <p className="text-sm text-muted-foreground">{item.details}</p>
+                          </div>
+                        </div>
                     </TableCell>
                 </TableRow>
             )}
@@ -140,19 +153,13 @@ export default function CampaignPerformance() {
       <CardContent>
         <div className="w-full overflow-x-auto">
           <Table>
-            <TableCaption>Detailed campaign metrics</TableCaption>
+            <TableCaption>Click on a row to see more details.</TableCaption>
             <TableHeader>
               <TableRow>
                 <SortableHeader sortKey="campaignName" requestSort={requestSort}>Campaign Name</SortableHeader>
-                <SortableHeader sortKey="sent" requestSort={requestSort}>Sent</SortableHeader>
-                <SortableHeader sortKey="delivered" requestSort={requestSort}>Delivered</SortableHeader>
-                <SortableHeader sortKey="deliveryRate" requestSort={requestSort}>Delivery Rate</SortableHeader>
-                <SortableHeader sortKey="clickRate" requestSort={requestSort}>Click Rate</SortableHeader>
-                <SortableHeader sortKey="cost" requestSort={requestSort}>Cost</SortableHeader>
-                <SortableHeader sortKey="activity" requestSort={requestSort}>Inactive %</SortableHeader>
-                <SortableHeader sortKey="activity" requestSort={requestSort}>Active %</SortableHeader>
-                <SortableHeader sortKey="activity" requestSort={requestSort}>Highly Active %</SortableHeader>
-                <TableHead>Frequency</TableHead>
+                <SortableHeader sortKey="deliveryRate" requestSort={requestSort} className="text-right">Delivery Rate</SortableHeader>
+                <SortableHeader sortKey="clickRate" requestSort={requestSort} className="text-right">Click Rate</SortableHeader>
+                <SortableHeader sortKey="cost" requestSort={requestSort} className="text-right">Cost</SortableHeader>
               </TableRow>
             </TableHeader>
             <TableBody>

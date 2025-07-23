@@ -44,8 +44,8 @@ export default function DashboardPage() {
       
       <div className="grid grid-cols-1 gap-8">
         <MonthlyOverview />
-        <CampaignPerformance />
         <FunnelAnalysis />
+        <CampaignPerformance />
         <NudgeActivityChart />
       </div>
     </div>
