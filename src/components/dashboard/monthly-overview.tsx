@@ -3,12 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { MonthlyData } from "@/hooks/use-data"
 import { Loader2 } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart, Legend, Tooltip } from "recharts"
 
 const chartConfig = {
+  sent: {
+    label: "Sent",
+    color: "hsl(var(--chart-1))",
+  },
   delivered: {
     label: "Delivered",
-    color: "hsl(var(--primary))",
+    color: "hsl(var(--chart-2))",
   },
   cost: {
     label: "Cost ($)",
@@ -26,7 +30,7 @@ export default function MonthlyOverview({ data, loading }: MonthlyOverviewProps)
     <Card>
       <CardHeader>
         <CardTitle>Monthly Overview</CardTitle>
-        <CardDescription>Delivered counts and associated costs per month.</CardDescription>
+        <CardDescription>Sent/Delivered counts and associated costs per month.</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {loading ? (
@@ -36,7 +40,7 @@ export default function MonthlyOverview({ data, loading }: MonthlyOverviewProps)
         ) : (
           <>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Delivered Count</h3>
+              <h3 className="text-lg font-semibold mb-4">Sent vs Delivered</h3>
               <ChartContainer config={chartConfig} className="h-[300px] w-full">
                 <BarChart accessibilityLayer data={data}>
                   <CartesianGrid vertical={false} />
@@ -48,10 +52,12 @@ export default function MonthlyOverview({ data, loading }: MonthlyOverviewProps)
                     tickFormatter={(value) => value.slice(0, 3)}
                   />
                   <YAxis />
-                  <ChartTooltip
+                  <Tooltip
                     cursor={false}
                     content={<ChartTooltipContent indicator="dot" />}
                   />
+                  <Legend />
+                  <Bar dataKey="sent" fill="var(--color-sent)" radius={4} />
                   <Bar dataKey="delivered" fill="var(--color-delivered)" radius={4} />
                 </BarChart>
               </ChartContainer>
@@ -69,11 +75,12 @@ export default function MonthlyOverview({ data, loading }: MonthlyOverviewProps)
                     tickFormatter={(value) => value.slice(0, 3)}
                   />
                   <YAxis />
-                  <ChartTooltip
+                  <Tooltip
                     cursor={false}
                     content={<ChartTooltipContent indicator="dot" />}
                   />
-                  <Line type="monotone" dataKey="cost" stroke="var(--color-cost)" strokeWidth={2} dot={false} />
+                  <Legend />
+                  <Line type="monotone" dataKey="cost" name="Total Cost" stroke="var(--color-cost)" strokeWidth={2} dot={false} />
                 </LineChart>
               </ChartContainer>
             </div>

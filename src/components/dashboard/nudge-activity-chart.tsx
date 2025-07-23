@@ -36,7 +36,9 @@ export default function NudgeActivityChart({ data, loading }: NudgeActivityChart
         else if (item.nudges_sent <= 8) bin = "7-8";
         else bin = "9+";
 
-        nudgeBins[bin][item.activity_level] += 1;
+        if (nudgeBins[bin] && item.activity_level) {
+          nudgeBins[bin][item.activity_level] += 1;
+        }
     });
     
     return Object.entries(nudgeBins).map(([nudge, counts]) => ({

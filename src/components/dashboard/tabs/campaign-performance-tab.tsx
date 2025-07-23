@@ -19,7 +19,7 @@ export default function CampaignPerformanceTab() {
     setFilters(prev => ({
         ...prev,
         dateRange: {
-          from: startOfMonth(new Date(2025, 6, 1)),
+          from: new Date(2025, 6, 1),
           to: endOfDay(new Date()),
         }
     }));
@@ -40,7 +40,7 @@ export default function CampaignPerformanceTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center">
+        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center flex-wrap">
           <DateRangePicker value={filters.dateRange} onValueChange={handleDateChange} />
           <MultiSelect
               options={rawData.distinctProducts.map(p => ({value: p, label: p}))}

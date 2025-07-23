@@ -2,7 +2,7 @@
 
 import { createContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchAndDecompress, DataState, RawData } from '@/hooks/use-data';
+import { fetchAndDecompress, DataState, RawData, CampaignData, ActivityData, MonthlyData } from '@/hooks/use-data';
 
 export const DataContext = createContext<{data: DataState, loading: boolean} | undefined>(undefined);
 
@@ -16,9 +16,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             try {
                 const [campaign, activity, monthly] = await Promise.all([
-                    fetchAndDecompress('/data/camp_user.json.gz', toast),
-                    fetchAndDecompress('/data/act.json.gz', toast),
-                    fetchAndDecompress('/data/monthly_metrics.json.gz', toast)
+                    fetchAndDecompress('/data/camp_user.json.gz', toast) as Promise<CampaignData[]>,
+                    fetchAndDecompress('/data/act.json.gz', toast) as Promise<ActivityData[]>,
+                    fetchAndDecompress('/data/monthly_metrics.json.gz', toast) as Promise<MonthlyData[]>
                 ]);
                 setRawData({ campaign, activity, monthly });
             } catch (error) {

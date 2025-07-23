@@ -99,11 +99,11 @@ interface FunnelAnalysisProps {
 }
 
 export default function FunnelAnalysis({ data, loading, by }: FunnelAnalysisProps) {
-    const aggregate = (key: 'product' | 'project') => {
+    const aggregatedData = useMemo(() => {
         const aggregation: Record<string, {name: string, sent: number, delivered: number}> = {};
 
         data.forEach(item => {
-            const name = item[key];
+            const name = item[by];
             if(!aggregation[name]){
                 aggregation[name] = { name, sent: 0, delivered: 0 };
             }
@@ -111,9 +111,7 @@ export default function FunnelAnalysis({ data, loading, by }: FunnelAnalysisProp
             aggregation[name].delivered += item.delivered;
         })
         return Object.values(aggregation);
-    }
-
-    const aggregatedData = useMemo(() => aggregate(by), [data, by]);
+    }, [data, by]);
 
   return (
     <Card>

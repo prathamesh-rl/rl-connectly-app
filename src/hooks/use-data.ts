@@ -13,8 +13,8 @@ export interface CampaignData {
     campaignName: string;
     sent: number;
     delivered: number;
-    clicks?: number;
-    cost?: number;
+    clicks: number;
+    cost: number;
 }
 
 export interface ActivityData {
@@ -27,6 +27,7 @@ export interface ActivityData {
 
 export interface MonthlyData {
     month: string;
+    sent: number;
     delivered: number;
     cost: number;
 }

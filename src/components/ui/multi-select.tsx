@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { ScrollArea } from "./scroll-area"
 
 export type Option = {
   value: string
@@ -28,7 +29,7 @@ export type Option = {
 interface MultiSelectProps {
   options: Option[]
   selected: string[]
-  onChange: React.Dispatch<React.SetStateAction<string[]>>
+  onChange: (selected: string[]) => void
   className?: string
   placeholder?: string
 }
@@ -42,9 +43,15 @@ function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
 
-  const handleUnselect = (item: string) => {
-    onChange(selected.filter((i) => i !== item))
+  const handleSelect = (value: string) => {
+    onChange(
+        selected.includes(value)
+        ? selected.filter((item) => item !== value)
+        : [...selected, value]
+    )
   }
+
+  const selectedLabels = selected.map(s => options.find(o => o.value === s)?.label).filter(Boolean);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -56,33 +63,28 @@ function MultiSelect({
           className={cn("w-full justify-between h-10", className)}
           onClick={() => setOpen(!open)}
         >
-          <div className="flex gap-1 flex-wrap">
-            {selected.length > 0 ? (
-                selected.map((item) => (
-                    options.find(opt => opt.value === item)?.label
-                )).join(', ')
+          <div className="flex gap-1 flex-wrap overflow-hidden">
+            {selectedLabels.length > 0 ? (
+              selectedLabels.length > 2 ? (
+                <span className="text-sm">{selectedLabels.length} selected</span>
+              ) : (
+                selectedLabels.join(', ')
+              )
             ) : placeholder}
           </div>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-full p-0" style={{width: 'var(--radix-popover-trigger-width)'}}>
         <Command className={className}>
           <CommandInput placeholder="Search..." />
           <CommandEmpty>No item found.</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
-            <CommandList>
+          <CommandList>
+            <ScrollArea className="h-64">
                 {options.map((option) => (
                 <CommandItem
                     key={option.value}
-                    onSelect={() => {
-                    onChange(
-                        selected.includes(option.value)
-                        ? selected.filter((item) => item !== option.value)
-                        : [...selected, option.value]
-                    )
-                    setOpen(true)
-                    }}
+                    onSelect={() => handleSelect(option.value)}
                 >
                     <Check
                     className={cn(
@@ -93,8 +95,8 @@ function MultiSelect({
                     {option.label}
                 </CommandItem>
                 ))}
-            </CommandList>
-          </CommandGroup>
+            </ScrollArea>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

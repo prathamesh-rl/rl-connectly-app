@@ -1,4 +1,3 @@
-
 "use client"
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -86,18 +85,21 @@ const CampaignRow = ({ item }: { item: CampaignData }) => {
                   </Button>
                   {item.campaignName}
               </TableCell>
-              <TableCell className="text-right">{(item.delivered / item.sent * 100).toFixed(1)}%</TableCell>
-              <TableCell className="text-right">{((item.clicks || 0) / item.delivered * 100).toFixed(1)}%</TableCell>
+              <TableCell className="text-right">{(item.sent || 0).toLocaleString()}</TableCell>
+              <TableCell className="text-right">{(item.delivered || 0).toLocaleString()}</TableCell>
+              <TableCell className="text-right">{(item.sent > 0 ? (item.delivered / item.sent) * 100 : 0).toFixed(1)}%</TableCell>
+              <TableCell className="text-right">{((item.clicks || 0) / (item.delivered || 1) * 100).toFixed(1)}%</TableCell>
               <TableCell className="text-right">${(item.cost || 0).toFixed(2)}</TableCell>
             </TableRow>
             {isOpen && (
                 <TableRow>
-                    <TableCell colSpan={4} className="p-4 bg-muted/50">
+                    <TableCell colSpan={6} className="p-4 bg-muted/50">
                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <h4 className="font-semibold mb-2 text-sm">Delivery Stats</h4>
                                 <p className="text-xs text-muted-foreground">Sent: {item.sent.toLocaleString()}</p>
                                 <p className="text-xs text-muted-foreground">Delivered: {item.delivered.toLocaleString()}</p>
+                                <p className="text-xs text-muted-foreground">Clicks: {(item.clicks || 0).toLocaleString()}</p>
                             </div>
                            <div>
                                 <h4 className="font-semibold mb-1 text-sm">Product</h4>
@@ -124,6 +126,7 @@ export default function CampaignPerformance({ data, loading }: CampaignPerforman
   const aggregatedData = useMemo(() => {
     const campaigns: Record<string, CampaignData> = {};
     data.forEach(row => {
+        if (!row.campaignName) return;
         const key = row.campaignName + row.product + row.project;
         if(!campaigns[key]) {
             campaigns[key] = {...row, sent: 0, delivered: 0, clicks: 0, cost: 0};
@@ -157,6 +160,8 @@ export default function CampaignPerformance({ data, loading }: CampaignPerforman
               <TableHeader>
                 <TableRow>
                   <SortableHeader sortKey="campaignName" requestSort={requestSort} sortConfig={sortConfig}>Campaign</SortableHeader>
+                  <SortableHeader sortKey="sent" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Sent</SortableHeader>
+                  <SortableHeader sortKey="delivered" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Delivered</SortableHeader>
                   <SortableHeader sortKey="deliveryRate" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Delivery Rate</SortableHeader>
                   <SortableHeader sortKey="clickRate" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Click Rate</SortableHeader>
                   <SortableHeader sortKey="cost" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Cost</SortableHeader>
@@ -165,7 +170,7 @@ export default function CampaignPerformance({ data, loading }: CampaignPerforman
               <TableBody>
                 {items.length > 0 ? items.map((item, index) => (
                   <CampaignRow key={`${item.campaignName}-${item.product}-${item.project}-${index}`} item={item} />
-                )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No data available for the selected filters.</TableCell></TableRow>}
+                )) : <TableRow><TableCell colSpan={6} className="text-center h-24">No data available for the selected filters.</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>

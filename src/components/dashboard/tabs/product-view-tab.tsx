@@ -7,7 +7,7 @@ import FunnelAnalysis from "@/components/dashboard/funnel-analysis"
 import NudgeActivityChart from "@/components/dashboard/nudge-activity-chart"
 import { useData, useFilteredData, Filters } from '@/hooks/use-data';
 import { DateRange } from 'react-day-picker';
-import { startOfMonth, endOfDay } from 'date-fns';
+import { endOfDay } from 'date-fns';
 
 export default function ProductViewTab() {
   const { data: rawData, loading: rawLoading } = useData();
@@ -18,7 +18,7 @@ export default function ProductViewTab() {
   useEffect(() => {
     setFilters({
         dateRange: {
-          from: startOfMonth(new Date(2025, 6, 1)),
+          from: new Date(2025, 6, 1),
           to: endOfDay(new Date()),
         },
         products: [],
@@ -36,7 +36,7 @@ export default function ProductViewTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center">
+        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center flex-wrap">
           <DateRangePicker value={filters.dateRange} onValueChange={handleDateChange} />
           <MultiSelect
               options={rawData.distinctProducts.map(p => ({value: p, label: p}))}

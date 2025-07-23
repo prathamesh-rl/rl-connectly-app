@@ -6,7 +6,7 @@ import DateRangePicker from "@/components/dashboard/date-range-picker"
 import FunnelAnalysis from "@/components/dashboard/funnel-analysis"
 import { useData, useFilteredData, Filters } from '@/hooks/use-data';
 import { DateRange } from 'react-day-picker';
-import { startOfMonth, endOfDay } from 'date-fns';
+import { endOfDay } from 'date-fns';
 
 export default function ProjectViewTab() {
   const { data: rawData, loading: rawLoading } = useData();
@@ -17,7 +17,7 @@ export default function ProjectViewTab() {
   useEffect(() => {
     setFilters({
         dateRange: {
-          from: startOfMonth(new Date(2025, 6, 1)),
+          from: new Date(2025, 6, 1),
           to: endOfDay(new Date()),
         },
         projects: [],
@@ -35,7 +35,7 @@ export default function ProjectViewTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center">
+        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center flex-wrap">
           <DateRangePicker value={filters.dateRange} onValueChange={handleDateChange} />
           <MultiSelect
               options={rawData.distinctProjects.map(p => ({value: p, label: p}))}
