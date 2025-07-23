@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -6,6 +7,7 @@ import MonthlyOverview from "@/components/dashboard/monthly-overview"
 import FunnelAnalysis from "@/components/dashboard/funnel-analysis"
 import NudgeActivityChart from "@/components/dashboard/nudge-activity-chart"
 import AlertSetupDialog from "@/components/dashboard/alert-setup-dialog"
+import CampaignPerformance from "@/components/dashboard/campaign-performance"
 
 export default function DashboardPage() {
   return (
@@ -42,6 +44,7 @@ export default function DashboardPage() {
       
       <div className="grid grid-cols-1 gap-8">
         <MonthlyOverview />
+        <CampaignPerformance />
         <FunnelAnalysis />
         <NudgeActivityChart />
       </div>
