@@ -17,8 +17,7 @@
       "low": 15000,
       "medium": 8000,
       "high": 2000
-    },
-    "details": "Initial campaign for new sign-ups."
+    }
   },
   {
     "campaignName": "Q2 Promotion",
@@ -37,8 +36,7 @@
       "low": 20000,
       "medium": 15000,
       "high": 5000
-    },
-    "details": "Promotional campaign for the second quarter."
+    }
   },
   {
     "campaignName": "Re-engagement Push",
@@ -57,8 +55,7 @@
       "low": 10000,
       "medium": 4000,
       "high": 1000
-    },
-    "details": "Campaign to re-engage inactive users."
+    }
   },
   {
     "campaignName": "Holiday Special",
@@ -77,7 +74,6 @@
       "low": 25000,
       "medium": 25000,
       "high": 10000
-    },
-    "details": "Special offers for the holiday season."
+    }
   }
 ]

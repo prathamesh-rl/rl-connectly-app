@@ -29,7 +29,7 @@ type Campaign = {
   details: string;
 };
 
-type SortKey = keyof Campaign | 'deliveryRate' | 'clickRate' | 'activityRate' | 'cost';
+type SortKey = keyof Campaign | 'deliveryRate' | 'clickRate' | 'cost';
 type SortDirection = 'asc' | 'desc';
 
 const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direction: SortDirection } | null = null) => {
@@ -44,23 +44,21 @@ const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direc
 
         switch (sortConfig.key) {
           case 'deliveryRate':
-            aValue = a.delivered / a.sent;
-            bValue = b.delivered / b.sent;
+            aValue = a.sent > 0 ? a.delivered / a.sent : 0;
+            bValue = b.sent > 0 ? b.delivered / b.sent : 0;
             break;
           case 'clickRate':
-            aValue = a.clicks / a.delivered;
-            bValue = b.clicks / b.delivered;
-            break;
-          case 'activityRate':
-            aValue = a.activity.highlyActive;
-            bValue = b.activity.highlyActive;
+            aValue = a.delivered > 0 ? a.clicks / a.delivered : 0;
+            bValue = b.delivered > 0 ? b.clicks / b.delivered : 0;
             break;
           default:
             aValue = a[sortConfig.key as keyof Campaign];
             bValue = b[sortConfig.key as keyof Campaign];
         }
 
-        if (typeof aValue === 'object') return 0;
+        if (typeof aValue === 'string') {
+          return aValue.localeCompare(bValue) * (sortConfig.direction === 'asc' ? 1 : -1);
+        }
 
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
@@ -108,40 +106,41 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
               </TableCell>
               <TableCell className="text-right">{(item.delivered / item.sent * 100).toFixed(1)}%</TableCell>
               <TableCell className="text-right">{(item.clicks / item.delivered * 100).toFixed(1)}%</TableCell>
-              <TableCell className="text-right">{item.activity.highlyActive.toFixed(1)}%</TableCell>
               <TableCell className="text-right">${item.cost.toFixed(2)}</TableCell>
             </TableRow>
             {isOpen && (
                 <TableRow>
-                    <TableCell colSpan={5} className="p-4 bg-muted/50">
+                    <TableCell colSpan={4} className="p-4 bg-muted/50">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <h4 className="font-semibold mb-2">Delivery</h4>
-                            <p>Sent: {item.sent.toLocaleString()}</p>
-                            <p>Delivered: {item.delivered.toLocaleString()}</p>
+                            <h4 className="font-semibold mb-2 text-sm">Delivery Stats</h4>
+                            <p className="text-xs">Sent: {item.sent.toLocaleString()}</p>
+                            <p className="text-xs">Delivered: {item.delivered.toLocaleString()}</p>
                           </div>
                           <div>
-                            <h4 className="font-semibold mb-2">User Activity</h4>
-                            <div className="flex flex-col gap-1">
-                              <Badge variant="secondary">Inactive: {item.activity.inactive.toFixed(1)}%</Badge>
-                              <Badge>Active: {item.activity.active.toFixed(1)}%</Badge>
-                              <Badge variant="outline">Highly Active: {item.activity.highlyActive.toFixed(1)}%</Badge>
+                            <h4 className="font-semibold mb-2 text-sm">User Activity</h4>
+                            <div className="flex flex-col gap-1 text-xs">
+                              <p>Inactive: {item.activity.inactive.toFixed(1)}%</p>
+                              <p>Active: {item.activity.active.toFixed(1)}%</p>
+                              <p>Highly Active: {item.activity.highlyActive.toFixed(1)}%</p>
                             </div>
                           </div>
                           <div>
-                            <h4 className="font-semibold mb-2">Frequency</h4>
-                            <p>Low: {item.frequency.low.toLocaleString()}</p>
-                            <p>Medium: {item.frequency.medium.toLocaleString()}</p>
-                            <p>High: {item.frequency.high.toLocaleString()}</p>
+                            <h4 className="font-semibold mb-2 text-sm">Frequency</h4>
+                             <div className="flex flex-col gap-1 text-xs">
+                                <p>Low: {item.frequency.low.toLocaleString()}</p>
+                                <p>Medium: {item.frequency.medium.toLocaleString()}</p>
+                                <p>High: {item.frequency.high.toLocaleString()}</p>
+                             </div>
                           </div>
                            <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <h4 className="font-semibold mb-1">Product</h4>
-                                    <p className="text-sm text-muted-foreground">{item.product}</p>
+                                    <h4 className="font-semibold mb-1 text-sm">Product</h4>
+                                    <p className="text-xs text-muted-foreground">{item.product}</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-1">Project</h4>
-                                    <p className="text-sm text-muted-foreground">{item.project}</p>
+                                    <h4 className="font-semibold mb-1 text-sm">Project</h4>
+                                    <p className="text-xs text-muted-foreground">{item.project}</p>
                                 </div>
                            </div>
                         </div>
@@ -172,7 +171,6 @@ export default function CampaignPerformance() {
                 <SortableHeader sortKey="campaignName" requestSort={requestSort}>Campaign Name</SortableHeader>
                 <SortableHeader sortKey="deliveryRate" requestSort={requestSort} className="text-right">Delivery Rate</SortableHeader>
                 <SortableHeader sortKey="clickRate" requestSort={requestSort} className="text-right">Click Rate</SortableHeader>
-                <SortableHeader sortKey="activityRate" requestSort={requestSort} className="text-right">Highly Active</SortableHeader>
                 <SortableHeader sortKey="cost" requestSort={requestSort} className="text-right">Cost</SortableHeader>
               </TableRow>
             </TableHeader>
