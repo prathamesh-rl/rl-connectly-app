@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table"
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, ChevronDown, ChevronRight } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CollapsibleContent } from '@/components/ui/collapsible';
 import campaignData from '@/data/campaign-perf.json';
 
 type Campaign = {
@@ -91,16 +91,13 @@ const SortableHeader = ({ children, sortKey, requestSort }: { children: React.Re
 const CampaignRow = ({ item }: { item: Campaign }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
-        <Collapsible asChild open={isOpen} onOpenChange={setIsOpen}>
         <React.Fragment>
-            <TableRow>
+            <TableRow onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
             <TableCell>
-                <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                        {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        <span className="sr-only">Toggle details</span>
-                    </Button>
-                </CollapsibleTrigger>
+                <Button variant="ghost" size="sm" className="mr-2">
+                    {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    <span className="sr-only">Toggle details</span>
+                </Button>
                 {item.campaignName}
             </TableCell>
             <TableCell>{item.sent.toLocaleString()}</TableCell>
@@ -117,16 +114,15 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
                 High: {item.frequency.high.toLocaleString()}
             </TableCell>
             </TableRow>
-            <CollapsibleContent asChild>
+            {isOpen && (
                 <TableRow>
                     <TableCell colSpan={10} className="p-4 bg-muted/50">
                         <p className="font-semibold">Details:</p>
                         <p>{item.details}</p>
                     </TableCell>
                 </TableRow>
-            </CollapsibleContent>
+            )}
         </React.Fragment>
-        </Collapsible>
     )
 }
 
