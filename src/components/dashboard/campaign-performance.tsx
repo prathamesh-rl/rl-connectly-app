@@ -61,11 +61,11 @@ const useSortableData = (items: CampaignData[], initialConfig: { key: SortKey; d
     setSortConfig({ key, direction });
   };
 
-  return { items: sortedItems, requestSort };
+  return { items: sortedItems, requestSort, sortConfig };
 };
 
 
-const SortableHeader = ({ children, sortKey, requestSort, className }: { children: React.ReactNode, sortKey: SortKey, requestSort: (key: SortKey) => void, className?: string }) => (
+const SortableHeader = ({ children, sortKey, requestSort, sortConfig, className }: { children: React.ReactNode, sortKey: SortKey, requestSort: (key: SortKey) => void, sortConfig: {key: SortKey, direction: SortDirection} | null, className?: string }) => (
   <TableHead className={className}>
     <Button variant="ghost" onClick={() => requestSort(sortKey)}>
       {children}
@@ -79,8 +79,8 @@ const CampaignRow = ({ item }: { item: CampaignData }) => {
     return (
         <React.Fragment>
             <TableRow onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
-              <TableCell>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2">
+              <TableCell className="font-medium">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 -ml-2">
                       {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                       <span className="sr-only">Toggle details</span>
                   </Button>
@@ -93,23 +93,21 @@ const CampaignRow = ({ item }: { item: CampaignData }) => {
             {isOpen && (
                 <TableRow>
                     <TableCell colSpan={4} className="p-4 bg-muted/50">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <h4 className="font-semibold mb-2 text-sm">Delivery Stats</h4>
-                                <p className="text-xs">Sent: {item.sent.toLocaleString()}</p>
-                                <p className="text-xs">Delivered: {item.delivered.toLocaleString()}</p>
+                                <p className="text-xs text-muted-foreground">Sent: {item.sent.toLocaleString()}</p>
+                                <p className="text-xs text-muted-foreground">Delivered: {item.delivered.toLocaleString()}</p>
                             </div>
-                           <div className="md:col-span-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <h4 className="font-semibold mb-1 text-sm">Product</h4>
-                                    <p className="text-xs text-muted-foreground">{item.product}</p>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold mb-1 text-sm">Project</h4>
-                                    <p className="text-xs text-muted-foreground">{item.project}</p>
-                                </div>
-                           </div>
-                        </div>
+                           <div>
+                                <h4 className="font-semibold mb-1 text-sm">Product</h4>
+                                <p className="text-xs text-muted-foreground">{item.product}</p>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold mb-1 text-sm">Project</h4>
+                                <p className="text-xs text-muted-foreground">{item.project}</p>
+                            </div>
+                       </div>
                     </TableCell>
                 </TableRow>
             )}
@@ -137,7 +135,7 @@ export default function CampaignPerformance({ data, loading }: CampaignPerforman
     });
     return Object.values(campaigns);
   }, [data])
-  const { items, requestSort } = useSortableData(aggregatedData, { key: 'campaignName', direction: 'asc' });
+  const { items, requestSort, sortConfig } = useSortableData(aggregatedData, { key: 'campaignName', direction: 'asc' });
 
   return (
     <Card>
@@ -149,7 +147,7 @@ export default function CampaignPerformance({ data, loading }: CampaignPerforman
       </CardHeader>
       <CardContent>
         {loading ? (
-            <div className="flex justify-center items-center h-48">
+            <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         ) : (
@@ -158,16 +156,16 @@ export default function CampaignPerformance({ data, loading }: CampaignPerforman
               <TableCaption>Click on a row to see more details.</TableCaption>
               <TableHeader>
                 <TableRow>
-                  <SortableHeader sortKey="campaignName" requestSort={requestSort}>Campaign Name</SortableHeader>
-                  <SortableHeader sortKey="deliveryRate" requestSort={requestSort} className="text-right">Delivery Rate</SortableHeader>
-                  <SortableHeader sortKey="clickRate" requestSort={requestSort} className="text-right">Click Rate</SortableHeader>
-                  <SortableHeader sortKey="cost" requestSort={requestSort} className="text-right">Cost</SortableHeader>
+                  <SortableHeader sortKey="campaignName" requestSort={requestSort} sortConfig={sortConfig}>Campaign</SortableHeader>
+                  <SortableHeader sortKey="deliveryRate" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Delivery Rate</SortableHeader>
+                  <SortableHeader sortKey="clickRate" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Click Rate</SortableHeader>
+                  <SortableHeader sortKey="cost" requestSort={requestSort} sortConfig={sortConfig} className="text-right">Cost</SortableHeader>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length > 0 ? items.map((item, index) => (
-                  <CampaignRow key={`${item.campaignName}-${index}`} item={item} />
-                )) : <TableRow><TableCell colSpan={4} className="text-center">No data available for the selected filters.</TableCell></TableRow>}
+                  <CampaignRow key={`${item.campaignName}-${item.product}-${item.project}-${index}`} item={item} />
+                )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No data available for the selected filters.</TableCell></TableRow>}
               </TableBody>
             </Table>
           </div>

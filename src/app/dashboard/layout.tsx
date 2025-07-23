@@ -22,6 +22,7 @@ import {
   RocketIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DataProvider } from "@/hooks/use-data"
 
 export default function DashboardLayout({
   children,
@@ -89,7 +90,9 @@ export default function DashboardLayout({
       </Sidebar>
       <SidebarInset>
         <div className="p-4 sm:p-6 lg:p-8">
-          {children}
+          <DataProvider>
+            {children}
+          </DataProvider>
         </div>
       </SidebarInset>
     </SidebarProvider>

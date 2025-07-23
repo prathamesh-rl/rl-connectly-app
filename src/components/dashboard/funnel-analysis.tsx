@@ -1,8 +1,7 @@
 "use client"
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table"
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, Loader2 } from 'lucide-react';
 import { CampaignData } from '@/hooks/use-data';
@@ -18,8 +17,13 @@ const useSortableData = (items: AggregatedData[], initialConfig: { key: SortKey;
     let sortableItems = [...items];
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
-        const aValue = sortConfig.key === 'rate' ? (a.delivered / a.sent) : a[sortConfig.key];
-        const bValue = sortConfig.key === 'rate' ? (b.delivered / b.sent) : b[sortConfig.key];
+        const aValue = sortConfig.key === 'rate' ? (a.sent > 0 ? a.delivered / a.sent : 0) : a[sortConfig.key];
+        const bValue = sortConfig.key === 'rate' ? (b.sent > 0 ? b.delivered / b.sent : 0) : b[sortConfig.key];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return aValue.localeCompare(bValue) * (sortConfig.direction === 'asc' ? 1 : -1);
+        }
+        
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -40,11 +44,10 @@ const useSortableData = (items: AggregatedData[], initialConfig: { key: SortKey;
     setSortConfig({ key, direction });
   };
 
-  return { items: sortedItems, requestSort };
+  return { items: sortedItems, requestSort, sortConfig };
 };
 
-
-const SortableHeader = ({ children, sortKey, requestSort }: { children: React.ReactNode, sortKey: SortKey, requestSort: (key: SortKey) => void }) => (
+const SortableHeader = ({ children, sortKey, requestSort, sortConfig }: { children: React.ReactNode, sortKey: SortKey, requestSort: (key: SortKey) => void, sortConfig: any }) => (
     <TableHead>
       <Button variant="ghost" onClick={() => requestSort(sortKey)}>
         {children}
@@ -53,17 +56,26 @@ const SortableHeader = ({ children, sortKey, requestSort }: { children: React.Re
     </TableHead>
   );
 
-const FunnelTable = ({ data, nameKey, nameHeader }: {data: AggregatedData[], nameKey: 'product' | 'project', nameHeader: string}) => {
-  const { items, requestSort } = useSortableData(data, { key: 'name', direction: 'asc' });
+const FunnelTable = ({ data, nameKey, nameHeader, loading }: {data: AggregatedData[], nameKey: 'product' | 'project', nameHeader: string, loading: boolean}) => {
+  const { items, requestSort, sortConfig } = useSortableData(data, { key: 'name', direction: 'asc' });
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <Table>
+        <TableCaption>Delivery funnel metrics aggregated by {nameHeader}.</TableCaption>
       <TableHeader>
         <TableRow>
-          <SortableHeader sortKey="name" requestSort={requestSort}>{nameHeader}</SortableHeader>
-          <SortableHeader sortKey="sent" requestSort={requestSort}>Sent</SortableHeader>
-          <SortableHeader sortKey="delivered" requestSort={requestSort}>Delivered</SortableHeader>
-          <SortableHeader sortKey="rate" requestSort={requestSort}>Delivery Rate</SortableHeader>
+          <SortableHeader sortKey="name" requestSort={requestSort} sortConfig={sortConfig}>{nameHeader}</SortableHeader>
+          <SortableHeader sortKey="sent" requestSort={requestSort} sortConfig={sortConfig}>Sent</SortableHeader>
+          <SortableHeader sortKey="delivered" requestSort={requestSort} sortConfig={sortConfig}>Delivered</SortableHeader>
+          <SortableHeader sortKey="rate" requestSort={requestSort} sortConfig={sortConfig}>Delivery Rate</SortableHeader>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -72,21 +84,21 @@ const FunnelTable = ({ data, nameKey, nameHeader }: {data: AggregatedData[], nam
             <TableCell className="font-medium">{item.name}</TableCell>
             <TableCell>{item.sent.toLocaleString()}</TableCell>
             <TableCell>{item.delivered.toLocaleString()}</TableCell>
-            <TableCell>{(item.delivered / item.sent * 100).toFixed(2)}%</TableCell>
+            <TableCell>{(item.delivered && item.sent ? item.delivered / item.sent * 100 : 0).toFixed(2)}%</TableCell>
           </TableRow>
-        )) : <TableRow><TableCell colSpan={4} className="text-center">No data available.</TableCell></TableRow>}
+        )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No data available for the selected filters.</TableCell></TableRow>}
       </TableBody>
     </Table>
   );
 };
 
-
 interface FunnelAnalysisProps {
   data: CampaignData[];
   loading: boolean;
+  by: 'product' | 'project';
 }
 
-export default function FunnelAnalysis({ data, loading }: FunnelAnalysisProps) {
+export default function FunnelAnalysis({ data, loading, by }: FunnelAnalysisProps) {
     const aggregate = (key: 'product' | 'project') => {
         const aggregation: Record<string, {name: string, sent: number, delivered: number}> = {};
 
@@ -101,36 +113,18 @@ export default function FunnelAnalysis({ data, loading }: FunnelAnalysisProps) {
         return Object.values(aggregation);
     }
 
-    const byProduct = useMemo(() => aggregate('product'), [data]);
-    const byProject = useMemo(() => aggregate('project'), [data]);
+    const aggregatedData = useMemo(() => aggregate(by), [data, by]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Funnel Analysis</CardTitle>
+        <CardTitle>Funnel Analysis by {by.charAt(0).toUpperCase() + by.slice(1)}</CardTitle>
         <CardDescription>
           View sent and delivered metrics, sortable by different criteria.
         </CardDescription>
       </CardHeader>
       <CardContent>
-      {loading ? (
-          <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-      ) : (
-        <Tabs defaultValue="product">
-          <TabsList>
-            <TabsTrigger value="product">By Product</TabsTrigger>
-            <TabsTrigger value="project">By Project</TabsTrigger>
-          </TabsList>
-          <TabsContent value="product">
-            <FunnelTable data={byProduct} nameKey="product" nameHeader="Product" />
-          </TabsContent>
-          <TabsContent value="project">
-            <FunnelTable data={byProject} nameKey="project" nameHeader="Project" />
-          </TabsContent>
-        </Tabs>
-      )}
+        <FunnelTable data={aggregatedData} nameKey={by} nameHeader={by.charAt(0).toUpperCase() + by.slice(1)} loading={loading} />
       </CardContent>
     </Card>
   )
