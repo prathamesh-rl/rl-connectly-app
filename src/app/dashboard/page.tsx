@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,18 +13,24 @@ import AlertSetupDialog from "@/components/dashboard/alert-setup-dialog"
 import CampaignPerformance from "@/components/dashboard/campaign-performance"
 import { useData } from '@/hooks/use-data';
 import { DateRange } from 'react-day-picker';
-import { addDays, startOfMonth } from 'date-fns';
+import { startOfMonth } from 'date-fns';
 
 export default function DashboardPage() {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: startOfMonth(new Date(2025, 6, 1)),
-    to: new Date(),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [products, setProducts] = useState<string[]>([]);
   const [projects, setProjects] = useState<string[]>([]);
   const [filters, setFilters] = useState({ dateRange, products, projects });
 
   const { data, loading, error, distinctProducts, distinctProjects } = useData(filters);
+
+  useEffect(() => {
+    // Set initial date range on client to avoid hydration mismatch
+    setDateRange({
+      from: startOfMonth(new Date(2025, 6, 1)),
+      to: new Date(),
+    });
+  }, []);
+
 
   const handleFilter = () => {
     setFilters({ dateRange, products, projects });
