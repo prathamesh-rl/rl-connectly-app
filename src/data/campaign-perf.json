@@ -2,6 +2,8 @@
 [
   {
     "campaignName": "Welcome Series",
+    "product": "Product A",
+    "project": "Project Alpha",
     "sent": 25000,
     "delivered": 24500,
     "clicks": 1200,
@@ -20,6 +22,8 @@
   },
   {
     "campaignName": "Q2 Promotion",
+    "product": "Product B",
+    "project": "Project Alpha",
     "sent": 40000,
     "delivered": 38000,
     "clicks": 3500,
@@ -38,6 +42,8 @@
   },
   {
     "campaignName": "Re-engagement Push",
+    "product": "Product A",
+    "project": "Project Beta",
     "sent": 15000,
     "delivered": 13500,
     "clicks": 500,
@@ -56,6 +62,8 @@
   },
   {
     "campaignName": "Holiday Special",
+    "product": "Product C",
+    "project": "Project Gamma",
     "sent": 60000,
     "delivered": 58000,
     "clicks": 8000,

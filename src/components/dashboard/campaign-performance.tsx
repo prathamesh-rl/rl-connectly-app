@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 
 type Campaign = {
   campaignName: string;
+  product: string;
+  project: string;
   sent: number;
   delivered: number;
   clicks: number;
@@ -27,7 +29,7 @@ type Campaign = {
   details: string;
 };
 
-type SortKey = keyof Campaign | 'deliveryRate' | 'clickRate';
+type SortKey = keyof Campaign | 'deliveryRate' | 'clickRate' | 'activityRate' | 'cost';
 type SortDirection = 'asc' | 'desc';
 
 const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direction: SortDirection } | null = null) => {
@@ -48,6 +50,10 @@ const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direc
           case 'clickRate':
             aValue = a.clicks / a.delivered;
             bValue = b.clicks / b.delivered;
+            break;
+          case 'activityRate':
+            aValue = a.activity.highlyActive;
+            bValue = b.activity.highlyActive;
             break;
           default:
             aValue = a[sortConfig.key as keyof Campaign];
@@ -102,11 +108,12 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
               </TableCell>
               <TableCell className="text-right">{(item.delivered / item.sent * 100).toFixed(1)}%</TableCell>
               <TableCell className="text-right">{(item.clicks / item.delivered * 100).toFixed(1)}%</TableCell>
+              <TableCell className="text-right">{item.activity.highlyActive.toFixed(1)}%</TableCell>
               <TableCell className="text-right">${item.cost.toFixed(2)}</TableCell>
             </TableRow>
             {isOpen && (
                 <TableRow>
-                    <TableCell colSpan={4} className="p-4 bg-muted/50">
+                    <TableCell colSpan={5} className="p-4 bg-muted/50">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <h4 className="font-semibold mb-2">Delivery</h4>
@@ -127,10 +134,16 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
                             <p>Medium: {item.frequency.medium.toLocaleString()}</p>
                             <p>High: {item.frequency.high.toLocaleString()}</p>
                           </div>
-                          <div className="md:col-span-3">
-                            <h4 className="font-semibold mb-1">Details</h4>
-                            <p className="text-sm text-muted-foreground">{item.details}</p>
-                          </div>
+                           <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h4 className="font-semibold mb-1">Product</h4>
+                                    <p className="text-sm text-muted-foreground">{item.product}</p>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold mb-1">Project</h4>
+                                    <p className="text-sm text-muted-foreground">{item.project}</p>
+                                </div>
+                           </div>
                         </div>
                     </TableCell>
                 </TableRow>
@@ -159,6 +172,7 @@ export default function CampaignPerformance() {
                 <SortableHeader sortKey="campaignName" requestSort={requestSort}>Campaign Name</SortableHeader>
                 <SortableHeader sortKey="deliveryRate" requestSort={requestSort} className="text-right">Delivery Rate</SortableHeader>
                 <SortableHeader sortKey="clickRate" requestSort={requestSort} className="text-right">Click Rate</SortableHeader>
+                <SortableHeader sortKey="activityRate" requestSort={requestSort} className="text-right">Highly Active</SortableHeader>
                 <SortableHeader sortKey="cost" requestSort={requestSort} className="text-right">Cost</SortableHeader>
               </TableRow>
             </TableHeader>
