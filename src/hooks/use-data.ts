@@ -102,11 +102,19 @@ export function useData(filters: Filters) {
 
         const filteredMonthly = rawData.monthly.filter(item => {
             if (!dateRange?.from || !dateRange?.to) return true;
+            // The `item.month` is in "YYYY-MM" format. The '-01' is added to make it a valid date string for the start of the month.
             const monthDate = new Date(item.month + '-01');
             const fromMonth = new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), 1);
             const toMonth = new Date(dateRange.to.getFullYear(), dateRange.to.getMonth(), 1);
             return monthDate >= fromMonth && monthDate <= toMonth;
-        }).map(m => ({...m, month: format(new Date(m.month + '-01'), "MMMM")}));
+        }).map(m => {
+            // The `m.month` is still "YYYY-MM". We format it to "MMMM" for display.
+            const monthDate = new Date(m.month + '-01');
+            return {
+                ...m, 
+                month: format(monthDate, "MMMM")
+            }
+        });
 
 
         return {
