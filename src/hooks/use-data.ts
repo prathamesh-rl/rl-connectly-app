@@ -82,6 +82,8 @@ export function useFilteredData(filters: Filters) {
         const { dateRange, products, projects } = filters;
 
         const filterItem = (item: { date: string, product: string, project: string }) => {
+            if (!item || !item.date) return false;
+            
             const itemDate = parseISO(item.date);
             if (!isValid(itemDate)) return false;
 
@@ -92,8 +94,8 @@ export function useFilteredData(filters: Filters) {
             return inDate && inProduct && inProject;
         };
         
-        const campaign = filters.hasOwnProperty('dateRange') || filters.hasOwnProperty('products') || filters.hasOwnProperty('projects') ? data.campaign.filter(filterItem) : data.campaign;
-        const activity = filters.hasOwnProperty('dateRange') || filters.hasOwnProperty('products') || filters.hasOwnProperty('projects') ? data.activity.filter(filterItem) : data.activity;
+        const campaign = data.campaign.filter(filterItem);
+        const activity = data.activity.filter(filterItem);
         
         const monthly = data.monthly.map(m => {
             const monthDate = parseISO(m.month + '-01T00:00:00Z');
