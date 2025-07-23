@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -49,7 +50,9 @@ const fetchAndDecompress = async (url: string, toast: any) => {
         if(!response.ok) throw new Error(`Failed to fetch ${url}`);
         const compressed = await response.arrayBuffer();
         const decompressed = pako.inflate(compressed, { to: 'string' });
-        return JSON.parse(decompressed);
+        // Handle line-delimited JSON (.jsonl or .ndjson)
+        const lines = decompressed.trim().split('\n');
+        return lines.map(line => JSON.parse(line));
     } catch (error) {
         console.error("Error fetching or processing data:", error);
         toast({
