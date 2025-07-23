@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import pako from 'pako';
 import { useToast } from './use-toast';
 import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 export interface CampaignData {
     date: string;
@@ -102,17 +102,16 @@ export function useData(filters: Filters) {
 
         const filteredMonthly = rawData.monthly.filter(item => {
             if (!dateRange?.from || !dateRange?.to) return true;
-            // The `item.month` is in "YYYY-MM" format. The '-01' is added to make it a valid date string for the start of the month.
             const monthDate = new Date(item.month + '-01');
+            if (!isValid(monthDate)) return false;
             const fromMonth = new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), 1);
             const toMonth = new Date(dateRange.to.getFullYear(), dateRange.to.getMonth(), 1);
             return monthDate >= fromMonth && monthDate <= toMonth;
         }).map(m => {
-            // The `m.month` is still "YYYY-MM". We format it to "MMMM" for display.
             const monthDate = new Date(m.month + '-01');
             return {
                 ...m, 
-                month: format(monthDate, "MMMM")
+                month: isValid(monthDate) ? format(monthDate, "MMMM") : "Invalid Month"
             }
         });
 
