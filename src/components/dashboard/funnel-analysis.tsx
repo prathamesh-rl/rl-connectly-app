@@ -4,26 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, Loader2 } from 'lucide-react';
+import { CampaignData } from '@/hooks/use-data';
 
-const productData = [
-  { product: "Product A", sent: 10000, delivered: 9500 },
-  { product: "Product B", sent: 12000, delivered: 11800 },
-  { product: "Product C", sent: 8000, delivered: 7200 },
-  { product: "Product D", sent: 15000, delivered: 14500 },
-];
-
-const projectData = [
-  { project: "Project Alpha", sent: 25000, delivered: 23000 },
-  { project: "Project Beta", sent: 18000, delivered: 17500 },
-  { project: "Project Gamma", sent: 22000, delivered: 21000 },
-];
-
-type DataItem = { sent: number; delivered: number; [key: string]: any };
-type SortKey = 'product' | 'project' | 'sent' | 'delivered' | 'rate';
+type AggregatedData = { name: string; sent: number; delivered: number; };
+type SortKey = 'name' | 'sent' | 'delivered' | 'rate';
 type SortDirection = 'asc' | 'desc';
 
-const useSortableData = (items: DataItem[], initialConfig: { key: SortKey; direction: SortDirection } | null = null) => {
+const useSortableData = (items: AggregatedData[], initialConfig: { key: SortKey; direction: SortDirection } | null = null) => {
   const [sortConfig, setSortConfig] = useState(initialConfig);
 
   const sortedItems = useMemo(() => {
@@ -52,7 +40,7 @@ const useSortableData = (items: DataItem[], initialConfig: { key: SortKey; direc
     setSortConfig({ key, direction });
   };
 
-  return { items: sortedItems, requestSort, sortConfig };
+  return { items: sortedItems, requestSort };
 };
 
 
@@ -65,59 +53,57 @@ const SortableHeader = ({ children, sortKey, requestSort }: { children: React.Re
     </TableHead>
   );
 
-const ProductTable = () => {
-  const { items, requestSort } = useSortableData(productData);
+const FunnelTable = ({ data, nameKey, nameHeader }: {data: AggregatedData[], nameKey: 'product' | 'project', nameHeader: string}) => {
+  const { items, requestSort } = useSortableData(data, { key: 'name', direction: 'asc' });
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <SortableHeader sortKey="product" requestSort={requestSort}>Product</SortableHeader>
+          <SortableHeader sortKey="name" requestSort={requestSort}>{nameHeader}</SortableHeader>
           <SortableHeader sortKey="sent" requestSort={requestSort}>Sent</SortableHeader>
           <SortableHeader sortKey="delivered" requestSort={requestSort}>Delivered</SortableHeader>
           <SortableHeader sortKey="rate" requestSort={requestSort}>Delivery Rate</SortableHeader>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {items.map((item) => (
-          <TableRow key={item.product}>
-            <TableCell className="font-medium">{item.product}</TableCell>
+        {items.length > 0 ? items.map((item) => (
+          <TableRow key={item.name}>
+            <TableCell className="font-medium">{item.name}</TableCell>
             <TableCell>{item.sent.toLocaleString()}</TableCell>
             <TableCell>{item.delivered.toLocaleString()}</TableCell>
             <TableCell>{(item.delivered / item.sent * 100).toFixed(2)}%</TableCell>
           </TableRow>
-        ))}
+        )) : <TableRow><TableCell colSpan={4} className="text-center">No data available.</TableCell></TableRow>}
       </TableBody>
     </Table>
   );
 };
 
-const ProjectTable = () => {
-    const { items, requestSort } = useSortableData(projectData);
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <SortableHeader sortKey="project" requestSort={requestSort}>Project</SortableHeader>
-                    <SortableHeader sortKey="sent" requestSort={requestSort}>Sent</SortableHeader>
-                    <SortableHeader sortKey="delivered" requestSort={requestSort}>Delivered</SortableHeader>
-                    <SortableHeader sortKey="rate" requestSort={requestSort}>Delivery Rate</SortableHeader>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {items.map((item) => (
-                    <TableRow key={item.project}>
-                        <TableCell className="font-medium">{item.project}</TableCell>
-                        <TableCell>{item.sent.toLocaleString()}</TableCell>
-                        <TableCell>{item.delivered.toLocaleString()}</TableCell>
-                        <TableCell>{(item.delivered / item.sent * 100).toFixed(2)}%</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    );
-};
 
-export default function FunnelAnalysis() {
+interface FunnelAnalysisProps {
+  data: CampaignData[];
+  loading: boolean;
+}
+
+export default function FunnelAnalysis({ data, loading }: FunnelAnalysisProps) {
+    const aggregate = (key: 'product' | 'project') => {
+        const aggregation: Record<string, {name: string, sent: number, delivered: number}> = {};
+
+        data.forEach(item => {
+            const name = item[key];
+            if(!aggregation[name]){
+                aggregation[name] = { name, sent: 0, delivered: 0 };
+            }
+            aggregation[name].sent += item.sent;
+            aggregation[name].delivered += item.delivered;
+        })
+        return Object.values(aggregation);
+    }
+
+    const byProduct = useMemo(() => aggregate('product'), [data]);
+    const byProject = useMemo(() => aggregate('project'), [data]);
+
   return (
     <Card>
       <CardHeader>
@@ -127,18 +113,24 @@ export default function FunnelAnalysis() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+      {loading ? (
+          <div className="flex justify-center items-center h-48">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+      ) : (
         <Tabs defaultValue="product">
           <TabsList>
             <TabsTrigger value="product">By Product</TabsTrigger>
             <TabsTrigger value="project">By Project</TabsTrigger>
           </TabsList>
           <TabsContent value="product">
-            <ProductTable />
+            <FunnelTable data={byProduct} nameKey="product" nameHeader="Product" />
           </TabsContent>
           <TabsContent value="project">
-            <ProjectTable />
+            <FunnelTable data={byProject} nameKey="project" nameHeader="Project" />
           </TabsContent>
         </Tabs>
+      )}
       </CardContent>
     </Card>
   )

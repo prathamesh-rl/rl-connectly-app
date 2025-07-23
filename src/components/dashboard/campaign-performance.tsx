@@ -4,35 +4,13 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table"
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, ChevronDown, ChevronRight } from 'lucide-react';
-import campaignData from '@/data/campaign-perf.json';
-import { Badge } from '@/components/ui/badge';
+import { ArrowUpDown, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import { CampaignData } from '@/hooks/use-data';
 
-type Campaign = {
-  campaignName: string;
-  product: string;
-  project: string;
-  sent: number;
-  delivered: number;
-  clicks: number;
-  cost: number;
-  activity: {
-    inactive: number;
-    active: number;
-    highlyActive: number;
-  };
-  frequency: {
-    low: number;
-    medium: number;
-    high: number;
-  };
-  details: string;
-};
-
-type SortKey = keyof Campaign | 'deliveryRate' | 'clickRate' | 'cost';
+type SortKey = 'campaignName' | 'sent' | 'delivered' | 'deliveryRate' | 'clickRate' | 'cost';
 type SortDirection = 'asc' | 'desc';
 
-const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direction: SortDirection } | null = null) => {
+const useSortableData = (items: CampaignData[], initialConfig: { key: SortKey; direction: SortDirection } | null = null) => {
   const [sortConfig, setSortConfig] = useState(initialConfig);
 
   const sortedItems = useMemo(() => {
@@ -48,16 +26,19 @@ const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direc
             bValue = b.sent > 0 ? b.delivered / b.sent : 0;
             break;
           case 'clickRate':
-            aValue = a.delivered > 0 ? a.clicks / a.delivered : 0;
-            bValue = b.delivered > 0 ? b.clicks / b.delivered : 0;
+            aValue = a.delivered > 0 ? (a.clicks || 0) / a.delivered : 0;
+            bValue = b.delivered > 0 ? (b.clicks || 0) / b.delivered : 0;
             break;
           default:
-            aValue = a[sortConfig.key as keyof Campaign];
-            bValue = b[sortConfig.key as keyof Campaign];
+            aValue = a[sortConfig.key as keyof CampaignData];
+            bValue = b[sortConfig.key as keyof CampaignData];
         }
+        
+        if(typeof aValue === 'undefined' || aValue === null) aValue = 0;
+        if(typeof bValue === 'undefined' || bValue === null) bValue = 0;
 
         if (typeof aValue === 'string') {
-          return aValue.localeCompare(bValue) * (sortConfig.direction === 'asc' ? 1 : -1);
+          return aValue.localeCompare(bValue.toString()) * (sortConfig.direction === 'asc' ? 1 : -1);
         }
 
         if (aValue < bValue) {
@@ -80,8 +61,9 @@ const useSortableData = (items: Campaign[], initialConfig: { key: SortKey; direc
     setSortConfig({ key, direction });
   };
 
-  return { items: sortedItems, requestSort, sortConfig };
+  return { items: sortedItems, requestSort };
 };
+
 
 const SortableHeader = ({ children, sortKey, requestSort, className }: { children: React.ReactNode, sortKey: SortKey, requestSort: (key: SortKey) => void, className?: string }) => (
   <TableHead className={className}>
@@ -92,7 +74,7 @@ const SortableHeader = ({ children, sortKey, requestSort, className }: { childre
   </TableHead>
 );
 
-const CampaignRow = ({ item }: { item: Campaign }) => {
+const CampaignRow = ({ item }: { item: CampaignData }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <React.Fragment>
@@ -105,35 +87,19 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
                   {item.campaignName}
               </TableCell>
               <TableCell className="text-right">{(item.delivered / item.sent * 100).toFixed(1)}%</TableCell>
-              <TableCell className="text-right">{(item.clicks / item.delivered * 100).toFixed(1)}%</TableCell>
-              <TableCell className="text-right">${item.cost.toFixed(2)}</TableCell>
+              <TableCell className="text-right">{((item.clicks || 0) / item.delivered * 100).toFixed(1)}%</TableCell>
+              <TableCell className="text-right">${(item.cost || 0).toFixed(2)}</TableCell>
             </TableRow>
             {isOpen && (
                 <TableRow>
                     <TableCell colSpan={4} className="p-4 bg-muted/50">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <h4 className="font-semibold mb-2 text-sm">Delivery Stats</h4>
-                            <p className="text-xs">Sent: {item.sent.toLocaleString()}</p>
-                            <p className="text-xs">Delivered: {item.delivered.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold mb-2 text-sm">User Activity</h4>
-                            <div className="flex flex-col gap-1 text-xs">
-                              <p>Inactive: {item.activity.inactive.toFixed(1)}%</p>
-                              <p>Active: {item.activity.active.toFixed(1)}%</p>
-                              <p>Highly Active: {item.activity.highlyActive.toFixed(1)}%</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 className="font-semibold mb-2 text-sm">Delivery Stats</h4>
+                                <p className="text-xs">Sent: {item.sent.toLocaleString()}</p>
+                                <p className="text-xs">Delivered: {item.delivered.toLocaleString()}</p>
                             </div>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold mb-2 text-sm">Frequency</h4>
-                             <div className="flex flex-col gap-1 text-xs">
-                                <p>Low: {item.frequency.low.toLocaleString()}</p>
-                                <p>Medium: {item.frequency.medium.toLocaleString()}</p>
-                                <p>High: {item.frequency.high.toLocaleString()}</p>
-                             </div>
-                          </div>
-                           <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="md:col-span-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <h4 className="font-semibold mb-1 text-sm">Product</h4>
                                     <p className="text-xs text-muted-foreground">{item.product}</p>
@@ -151,9 +117,28 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
     )
 }
 
+interface CampaignPerformanceProps {
+  data: CampaignData[];
+  loading: boolean;
+}
 
-export default function CampaignPerformance() {
-  const { items, requestSort } = useSortableData(campaignData);
+export default function CampaignPerformance({ data, loading }: CampaignPerformanceProps) {
+  const aggregatedData = useMemo(() => {
+    const campaigns: Record<string, CampaignData> = {};
+    data.forEach(row => {
+        const key = row.campaignName + row.product + row.project;
+        if(!campaigns[key]) {
+            campaigns[key] = {...row, sent: 0, delivered: 0, clicks: 0, cost: 0};
+        }
+        campaigns[key].sent += row.sent;
+        campaigns[key].delivered += row.delivered;
+        campaigns[key].clicks = (campaigns[key].clicks || 0) + (row.clicks || 0);
+        campaigns[key].cost = (campaigns[key].cost || 0) + (row.cost || 0);
+    });
+    return Object.values(campaigns);
+  }, [data])
+  const { items, requestSort } = useSortableData(aggregatedData, { key: 'campaignName', direction: 'asc' });
+
   return (
     <Card>
       <CardHeader>
@@ -163,24 +148,30 @@ export default function CampaignPerformance() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="w-full overflow-x-auto">
-          <Table>
-            <TableCaption>Click on a row to see more details.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <SortableHeader sortKey="campaignName" requestSort={requestSort}>Campaign Name</SortableHeader>
-                <SortableHeader sortKey="deliveryRate" requestSort={requestSort} className="text-right">Delivery Rate</SortableHeader>
-                <SortableHeader sortKey="clickRate" requestSort={requestSort} className="text-right">Click Rate</SortableHeader>
-                <SortableHeader sortKey="cost" requestSort={requestSort} className="text-right">Cost</SortableHeader>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <CampaignRow key={item.campaignName} item={item} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        {loading ? (
+            <div className="flex justify-center items-center h-48">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : (
+          <div className="w-full overflow-x-auto">
+            <Table>
+              <TableCaption>Click on a row to see more details.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <SortableHeader sortKey="campaignName" requestSort={requestSort}>Campaign Name</SortableHeader>
+                  <SortableHeader sortKey="deliveryRate" requestSort={requestSort} className="text-right">Delivery Rate</SortableHeader>
+                  <SortableHeader sortKey="clickRate" requestSort={requestSort} className="text-right">Click Rate</SortableHeader>
+                  <SortableHeader sortKey="cost" requestSort={requestSort} className="text-right">Cost</SortableHeader>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.length > 0 ? items.map((item, index) => (
+                  <CampaignRow key={`${item.campaignName}-${index}`} item={item} />
+                )) : <TableRow><TableCell colSpan={4} className="text-center">No data available for the selected filters.</TableCell></TableRow>}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
