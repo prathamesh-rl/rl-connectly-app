@@ -92,7 +92,7 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <Collapsible asChild open={isOpen} onOpenChange={setIsOpen}>
-        <>
+        <React.Fragment>
             <TableRow>
             <TableCell>
                 <CollapsibleTrigger asChild>
@@ -125,7 +125,7 @@ const CampaignRow = ({ item }: { item: Campaign }) => {
                     </TableCell>
                 </TableRow>
             </CollapsibleContent>
-        </>
+        </React.Fragment>
         </Collapsible>
     )
 }
