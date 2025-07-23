@@ -1,9 +1,0 @@
-{"month":"2025-07-01","product":"BTP","active_bucket":">10","low_freq":1,"med_freq":0,"high_freq":986}
-{"month":"2025-07-01","product":"BTP","active_bucket":"1-10","low_freq":1,"med_freq":11,"high_freq":6038}
-{"month":"2025-07-01","product":"PP","active_bucket":">10","low_freq":54728,"med_freq":13453,"high_freq":1142}
-{"month":"2025-07-01","product":"TP","active_bucket":"0","low_freq":76906,"med_freq":43652,"high_freq":11038}
-{"month":"2025-07-01","product":"BTP","active_bucket":"0","low_freq":17,"med_freq":6,"high_freq":1911}
-{"month":"2025-07-01","product":"PP","active_bucket":"1-10","low_freq":189194,"med_freq":49625,"high_freq":6898}
-{"month":"2025-07-01","product":"TP","active_bucket":"1-10","low_freq":68699,"med_freq":179385,"high_freq":211042}
-{"month":"2025-07-01","product":"TP","active_bucket":">10","low_freq":42510,"med_freq":156986,"high_freq":416334}
-{"month":"2025-07-01","product":"PP","active_bucket":"0","low_freq":500331,"med_freq":16374,"high_freq":1947}
