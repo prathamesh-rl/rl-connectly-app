@@ -1,11 +1,12 @@
 
 "use client"
 
-import { useState, useEffect, useMemo, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import pako from 'pako';
 import { useToast } from './use-toast';
 import { DateRange } from 'react-day-picker';
-import { format, isValid, startOfMonth, endOfDay } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
+import { DataContext } from '@/context/data-context';
 
 export interface CampaignData {
     date: string;
@@ -32,7 +33,7 @@ export interface MonthlyData {
     cost: number;
 }
 
-interface DataState {
+export interface DataState {
     campaign: CampaignData[];
     activity: ActivityData[];
     monthly: MonthlyData[];
@@ -40,7 +41,7 @@ interface DataState {
     distinctProjects: string[];
 }
 
-const fetchAndDecompress = async (url: string, toast: any) => {
+export const fetchAndDecompress = async (url: string, toast: any) => {
     try {
         const response = await fetch(url);
         if(!response.ok) throw new Error(`Failed to fetch ${url}`);
@@ -59,37 +60,6 @@ const fetchAndDecompress = async (url: string, toast: any) => {
     }
 }
 
-const DataContext = createContext<{data: DataState, loading: boolean} | undefined>(undefined);
-
-export function DataProvider({ children }: { children: ReactNode }) {
-    const { toast } = useToast();
-    const [data, setData] = useState<DataState>({ campaign: [], activity: [], monthly: [], distinctProducts: [], distinctProjects: [] });
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            const [campaign, activity, monthly] = await Promise.all([
-                fetchAndDecompress('/data/camp_user.json.gz', toast),
-                fetchAndDecompress('/data/act.json.gz', toast),
-                fetchAndDecompress('/data/monthly_metrics.json.gz', toast)
-            ]);
-
-            const distinctProducts = [...new Set(campaign.map((d: CampaignData) => d.product))].sort();
-            const distinctProjects = [...new Set(campaign.map((d: CampaignData) => d.project))].sort();
-
-            setData({ campaign, activity, monthly, distinctProducts, distinctProjects });
-            setLoading(false);
-        };
-        loadData();
-    }, [toast]);
-
-    return (
-        <DataContext.Provider value={{ data, loading }}>
-            {children}
-        </DataContext.Provider>
-    )
-}
 
 export function useData() {
     const context = useContext(DataContext);
@@ -112,7 +82,7 @@ export function useFilteredData(filters: Filters) {
         const { dateRange, products, projects } = filters;
 
         const filterItem = (item: { date: string, product: string, project: string }) => {
-            const itemDate = new Date(item.date);
+            const itemDate = parseISO(item.date);
             if (!isValid(itemDate)) return false;
 
             const inDate = !dateRange || !dateRange.from || (itemDate >= dateRange.from && itemDate <= (dateRange.to || dateRange.from));
@@ -126,7 +96,7 @@ export function useFilteredData(filters: Filters) {
         const activity = filters.hasOwnProperty('dateRange') || filters.hasOwnProperty('products') || filters.hasOwnProperty('projects') ? data.activity.filter(filterItem) : data.activity;
         
         const monthly = data.monthly.map(m => {
-            const monthDate = new Date(m.month + '-01T00:00:00Z');
+            const monthDate = parseISO(m.month + '-01T00:00:00Z');
             return {
                 ...m, 
                 month: isValid(monthDate) ? format(monthDate, "MMMM") : "Invalid Month"

@@ -22,7 +22,7 @@ import {
   RocketIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { DataProvider } from "@/hooks/use-data"
+import { DataProvider } from "@/context/data-context"
 
 export default function DashboardLayout({
   children,
