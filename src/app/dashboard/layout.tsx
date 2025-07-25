@@ -106,16 +106,16 @@ export default function DashboardLayout({
   return (
     <AuthProvider>
       <DataProvider>
-          <div className="flex">
-            <DashboardSidebar />
-            <main className="flex-1">
-              <SidebarInset>
-                <div className="p-4 sm:p-6 lg:p-8">
-                  {children}
-                </div>
-              </SidebarInset>
-            </main>
-          </div>
+        <div className="flex">
+          <DashboardSidebar />
+          <main className="flex-1">
+            <SidebarInset>
+              <div className="p-4 sm:p-6 lg:p-8">
+                {children}
+              </div>
+            </SidebarInset>
+          </main>
+        </div>
       </DataProvider>
     </AuthProvider>
   )

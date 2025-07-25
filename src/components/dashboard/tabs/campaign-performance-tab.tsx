@@ -6,7 +6,7 @@ import DateRangePicker from "@/components/dashboard/date-range-picker"
 import CampaignPerformance from "@/components/dashboard/campaign-performance"
 import { useData, useFilteredData, Filters } from '@/hooks/use-data';
 import { DateRange } from 'react-day-picker';
-import { startOfMonth, endOfDay } from 'date-fns';
+import { endOfDay } from 'date-fns';
 
 export default function CampaignPerformanceTab() {
   const { data: rawData, loading: rawLoading } = useData();
