@@ -1,4 +1,3 @@
-
 "use client"
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -105,12 +104,18 @@ export default function FunnelAnalysis({ data, loading, by }: FunnelAnalysisProp
         const aggregation: Record<string, {name: string, sent: number, delivered: number}> = {};
 
         data.forEach(item => {
+            // Add log to inspect each item before aggregation
+            console.log(`[FunnelAnalysis by=${by}] Processing item:`, item);
             const name = item[by];
             if(!aggregation[name]){
                 aggregation[name] = { name, sent: 0, delivered: 0 };
             }
+            // Add logs to inspect sent and delivered values before aggregation
+            console.log(`[FunnelAnalysis by=${by}] Item sent: ${item.sent}, Item delivered: ${item.delivered}`);
             aggregation[name].sent += item.sent;
             aggregation[name].delivered += item.delivered;
+            // Add log to inspect aggregation object after processing item
+            console.log(`[FunnelAnalysis by=${by}] Aggregation after processing item:`, aggregation);
         })
         const result = Object.values(aggregation);
         console.log(`[FunnelAnalysis by=${by}] Aggregated data:`, result);
