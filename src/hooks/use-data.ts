@@ -103,6 +103,8 @@ export function useFilteredData(filters: Filters) {
         const campaign = data.campaign.filter(filterItem);
         const activity = data.activity.filter(filterItem);
         
+        console.log("[useFilteredData] Filtered Campaign Data:", campaign);
+
         const monthly = data.monthly.map(m => {
             const monthDate = parse(m.month, 'yyyy-MM', new Date());
             return {
