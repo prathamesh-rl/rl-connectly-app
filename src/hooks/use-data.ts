@@ -4,7 +4,7 @@
 import { useMemo, useContext } from 'react';
 import pako from 'pako';
 import { DateRange } from 'react-day-picker';
-import { format, isValid, parseISO } from 'date-fns';
+import { format, isValid, parse, parseISO } from 'date-fns';
 import { DataContext } from '@/context/data-context';
 
 export interface CampaignData {
@@ -27,7 +27,7 @@ export interface ActivityData {
 }
 
 export interface MonthlyData {
-    month: string;
+    month: string; // YYYY-MM
     sent: number;
     delivered: number;
     cost: number;
@@ -53,6 +53,7 @@ export const fetchAndDecompress = async (url: string, toast: any): Promise<any[]
         }
         const compressed = await response.arrayBuffer();
         const decompressed = pako.inflate(compressed, { to: 'string' });
+        // Handle multi-line JSON by parsing each line
         const lines = decompressed.trim().split('\n');
         return lines.map(line => JSON.parse(line));
     } catch (error) {
@@ -86,7 +87,7 @@ export function useFilteredData(filters: Filters) {
     const filteredData = useMemo(() => {
         const { dateRange, products, projects } = filters;
 
-        const filterItem = (item: { date: string, product: string, project: string }) => {
+        const filterItem = (item: { date: string; product: string; project: string; }) => {
             if (!item || !item.date) return false;
             
             const itemDate = parseISO(item.date);
@@ -103,12 +104,13 @@ export function useFilteredData(filters: Filters) {
         const activity = data.activity.filter(filterItem);
         
         const monthly = data.monthly.map(m => {
-            const monthDate = parseISO(`${m.month}-01T00:00:00Z`);
+            const monthDate = parse(m.month, 'yyyy-MM', new Date());
             return {
-                ...m, 
-                month: isValid(monthDate) ? format(monthDate, "MMMM") : "Invalid"
+                ...m,
+                month: isValid(monthDate) ? format(monthDate, "MMMM") : "Invalid Date",
+                dateObj: monthDate,
             }
-        }).filter(m => m.month !== "Invalid");
+        }).filter(m => m.month !== "Invalid Date");
 
         return {
             campaign,

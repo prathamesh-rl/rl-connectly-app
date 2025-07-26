@@ -1,3 +1,4 @@
+
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,7 +8,7 @@ import FunnelAnalysis from "@/components/dashboard/funnel-analysis"
 import NudgeActivityChart from "@/components/dashboard/nudge-activity-chart"
 import { useData, useFilteredData, Filters } from '@/hooks/use-data';
 import { DateRange } from 'react-day-picker';
-import { endOfDay } from 'date-fns';
+import { endOfDay, startOfMonth } from 'date-fns';
 
 export default function ProductViewTab() {
   const { data: rawData, loading: rawLoading } = useData();
@@ -16,10 +17,11 @@ export default function ProductViewTab() {
   const { data: filteredData, loading: filteredLoading } = useFilteredData(filters);
 
   useEffect(() => {
+    // Set initial date range on client to avoid hydration mismatch
     setFilters({
         dateRange: {
-          from: new Date(2025, 6, 1),
-          to: endOfDay(new Date()),
+          from: new Date(2025, 6, 1), // July 1st, 2025
+          to: endOfDay(new Date(2025, 8, 30)), // End of Sep 30, 2025
         },
         products: [],
     });

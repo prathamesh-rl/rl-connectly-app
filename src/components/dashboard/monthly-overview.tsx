@@ -1,3 +1,4 @@
+
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -21,7 +22,7 @@ const chartConfig = {
 }
 
 interface MonthlyOverviewProps {
-  data: MonthlyData[];
+  data: (MonthlyData & { dateObj?: Date })[];
   loading: boolean;
 }
 
@@ -49,7 +50,7 @@ export default function MonthlyOverview({ data, loading }: MonthlyOverviewProps)
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
+                    tickFormatter={(value) => typeof value === 'string' ? value.slice(0, 3) : ''}
                   />
                   <YAxis />
                   <Tooltip
@@ -72,7 +73,7 @@ export default function MonthlyOverview({ data, loading }: MonthlyOverviewProps)
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
+                    tickFormatter={(value) => typeof value === 'string' ? value.slice(0, 3) : ''}
                   />
                   <YAxis />
                   <Tooltip

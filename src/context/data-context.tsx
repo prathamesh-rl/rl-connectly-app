@@ -21,6 +21,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     fetchAndDecompress('/data/act.json.gz', toast) as Promise<ActivityData[]>,
                     fetchAndDecompress('/data/monthly_metrics.json.gz', toast) as Promise<MonthlyData[]>
                 ]);
+
+                if (!campaign.length && !activity.length && !monthly.length) {
+                  toast({
+                    variant: "destructive",
+                    title: "Fatal Error",
+                    description: "All data files failed to load. The dashboard will not function.",
+                  });
+                }
+                
                 setRawData({ campaign, activity, monthly });
             } catch (error) {
                 console.error("Error loading initial data", error);
@@ -37,8 +46,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }, [toast]);
 
     const processedData = useMemo<DataState>(() => {
-        const distinctProducts = [...new Set(rawData.campaign.map((d: any) => d.product))].sort();
-        const distinctProjects = [...new Set(rawData.campaign.map((d: any) => d.project))].sort();
+        const distinctProducts = [...new Set(rawData.campaign.map((d: any) => d.product).filter(Boolean))].sort();
+        const distinctProjects = [...new Set(rawData.campaign.map((d: any) => d.project).filter(Boolean))].sort();
 
         return {
             ...rawData,
